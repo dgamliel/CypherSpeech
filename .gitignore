@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#Node files cause I fucked up the project LMAO
+node_modules/
+
 # C extensions
 *.so
 

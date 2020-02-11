@@ -15,6 +15,7 @@
         crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+		<script src="/main.js"></script>
 </head>
 
 <style>
@@ -36,14 +37,7 @@
 </style>
 
 <script>
-    $(function () {
-        var socket = io();
-        $('#connect').click(function () {
-            var userName = $("#username").val();
-            socket.emit('message', userName);
-            $("#username").val('');
-        })
-    })
+
 </script>
 
 <body>

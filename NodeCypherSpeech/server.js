@@ -21,23 +21,24 @@ io.on('connection', function(socket) {
 		
 		//Users that have connected after things have been posted should get
 		//Everything that has already been posted
-		map.forEach( (keyItem, valueItem, map) => {
+		map.forEach( (valueItem, keyItem, map) => {
 			console.log("key: some socket...", "value", valueItem);
 			socket.emit('response', valueItem);
 		});
 
 		//On receveing a message
     socket.on('message', (data) => {
-			map.set(data,socket);
+			map.set(socket, data);
 			var response = `${data}`
 			console.log("Sending ...", data);
 			io.emit('response', response);
     });
 
-    socket.on('disconnect', (socket) => {
+    socket.on('disconnect', () => {
+				console.log("\nDisconnecting ...", socket);
 				var userName = map.get(socket);
 				io.emit('remove', userName); 
-        console.log("A user disconnected");
+        console.log(`User ${userName} disconnected`);
     });
 });
 

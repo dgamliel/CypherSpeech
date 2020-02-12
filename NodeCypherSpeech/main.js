@@ -6,18 +6,27 @@
 
 
 $(function () {
-		var socket = io();
-		console.log("owo called multiple times");
-		$('#connect').click(function () {
-				var userName = $("#username").val();
-				socket.emit('message', userName);
-				$("#username").val('');
-		});
+	//On document render, open websocket to our server
+	var socket = io();
 
-		socket.on('response', (data) => {
-			console.log("Received message from server!", data);
-			var listData = `<li><a href="#">${data}</a></li>`
-			$("#users").append(listData);
-		});
+	$('#connect').click(function () {
+			var userName = $("#username").val();
+			socket.emit('message', userName);
+			$("#username").val('');
+	});
+
+	//Handle "response" event
+	socket.on('response', (data) => {
+		console.log("Adding online user", data);
+		var listData = `<li id="${data}"><a href="#">${data}</a></li>`
+		$("#users").append(listData);
+	});
+
+	socket.on('remove', (data) => {
+		console.log("User disconnected", data);
+		var removeName = data;
+		$(`#${removeName}`).remove();
+	})
+		
 
 })

@@ -18,7 +18,7 @@ $(function () {
 	//Handle "response" event
 	socket.on('response', (data) => {
 		console.log("Adding online user", data);
-		var listData = `<li id="${data}"><a href="#">${data}</a></li>`
+		var listData = `<button id="${data}" class="btn btn-lg btn-primary spacingTop spacingLeft">${data}</button>`
 		$("#users").append(listData);
 	});
 

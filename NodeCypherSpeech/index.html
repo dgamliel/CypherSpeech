@@ -15,7 +15,7 @@
         crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-		<script src="/main.js"></script>
+    <script src="/main.js"></script>
 </head>
 
 <style>
@@ -34,6 +34,10 @@
     .spacingTop {
         margin-top: 1em;
     }
+
+		.spacingLeft {
+			margin-right: 15px;
+		}
 </style>
 
 <script>
@@ -52,11 +56,16 @@
                     <button id="connect" class="btn btn-lg btn-primary spacingTop">Connect me</button>
 
                 </div>
-
-								<ul class="spacingTop" id="users">
-								</ul>
-
             </div>
+
+            <div class="row">
+                <div id="users" class="col justify-content-center">
+
+                </div>
+            </div>
+
+
+
         </div>
     </div>
 </body>

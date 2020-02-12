@@ -7,13 +7,17 @@
 
 $(function () {
 		var socket = io();
+		console.log("owo called multiple times");
 		$('#connect').click(function () {
 				var userName = $("#username").val();
 				socket.emit('message', userName);
 				$("#username").val('');
+		});
 
-				socket.on('response', (data) => {
-					console.log("Received message from server!", data);
-				});
-		})
+		socket.on('response', (data) => {
+			console.log("Received message from server!", data);
+			var listData = `<li><a href="#">${data}</a></li>`
+			$("#users").append(listData);
+		});
+
 })

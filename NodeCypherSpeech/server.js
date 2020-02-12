@@ -6,6 +6,7 @@ var io = require('socket.io')(server);
 var port = 8082;
 
 var users = new Set();
+var map   = new Map();
 
 //On a get request --> send back html
 app.get('/', function(req, res){
@@ -17,17 +18,27 @@ app.use('/main.js', express.static(path.join(__dirname, '/main.js')));
 
 io.on('connection', function(socket) {
     console.log("A user connected!");
+		
+		//Users that have connected after things have been posted should get
+		//Everything that has already been posted
+		map.forEach( (keyItem, valueItem, map) => {
+			console.log("key: some socket...", "value", valueItem);
+			socket.emit('response', valueItem);
+		});
 
+		//On receveing a message
     socket.on('message', (data) => {
-			users.add(data);
-			var response = `Hello ${data}`
-			socket.emit('response', response);
+			map.set(data,socket);
+			var response = `${data}`
+			console.log("Sending ...", data);
+			io.emit('response', response);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (socket) => {
+				var userName = map.get(socket);
+				io.emit('remove', userName); 
         console.log("A user disconnected");
     });
 });
-
 
 server.listen(port, () => console.log(`Running on port ${port}`))

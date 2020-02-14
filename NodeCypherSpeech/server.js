@@ -35,7 +35,6 @@ io.on('connection', function(socket) {
     });
 
     socket.on('disconnect', () => {
-				console.log("\nDisconnecting ...", socket);
 				var userName = map.get(socket);
 				io.emit('remove', userName); 
 				map.delete(socket);

@@ -28,18 +28,6 @@ $(function() {
 		.mediaDevices
 		.getUserMedia(audioOnly)
 		.then( mediaStream => {
-	
-				//Use MediaStream Recording API
-				const recorder = new MediaRecorder(mediaStream);
-
-				recorder.ondataavailable = event => {
-					const blob = event.data;
-					// console.log("Blob data", blob);
-				}
-			
-				//Every 1 ms our data available event goes off
-				recorder.start(1);
-
 				stream = mediaStream;
 		}
 
@@ -84,12 +72,10 @@ $(function () {
 	});
 
 	socket.on('initialize-broadcast', data => {
-		if (data.peer !== userName) return;
 		makeCall(socket, data);
 	});
 
 	socket.on('offer-broadcast', async data => {
-		if (data.remote !== userName) return;
 		await peerConnection.setRemoteDescription(data.offer);
 		const answer = await peerConnection.createAnswer();
 		await peerConnection.setLocalDescription(answer);
@@ -104,7 +90,6 @@ $(function () {
 	});
 
 	socket.on('answer-broadcast', async data => {
-		if (data.peer !== userName) return
 		await peerConnection.setRemoteDescription(data.answer);
 	});
 
@@ -130,8 +115,6 @@ async function makeCall(socket, data) {
 	
 	if (data.peer === userName) {
 		peerConnection.onicecandidate = async event => {
-			console.log(event);
-
 			if (event.candidate) {
 				var d = {
 					peer: data.peer,
@@ -146,6 +129,7 @@ async function makeCall(socket, data) {
 	}
 
 	peerConnection.ontrack = event => {
+		console.log('ontrack', event);
 		const recorder = new MediaRecorder(event.streams[0]);
 
 			recorder.ondataavailable = event => {
@@ -159,7 +143,6 @@ async function makeCall(socket, data) {
 
 	stream.getTracks().forEach(track => {
 		peerConnection.addTrack(track, stream);
-		console.log('track', track);
 	});
 	
 	if (data.peer === userName) {

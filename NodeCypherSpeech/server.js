@@ -43,19 +43,19 @@ io.on('connection', function(socket) {
 
 	socket.on('initialize', data => {
 		console.log('initializing connection between', data.peer, 'and', data.remote);
-		getByValue(map, data.peer).emit('initialize-broadcast', data);
+		getByValue(map, data.peer).emit('initialize', data);
 	});
 
 	socket.on('offer', data => {
-		getByValue(map, data.remote).emit('offer-broadcast', data);
+		getByValue(map, data.remote).emit('offer', data);
 	});
 
 	socket.on('answer', data => {
-		getByValue(map, data.peer).emit('answer-broadcast', data);
+		getByValue(map, data.peer).emit('answer', data);
 	});
 
 	socket.on('icecandidate', data => {
-		getByValue(map, data.remote).emit('icecandidate-broadcast', data);
+		getByValue(map, data.remote).emit('icecandidate', data);
 	});
 
 	//On receveing a message

@@ -1,6 +1,7 @@
 'use strict';
 
 var userName;
+var remoteUserName;
 var stream;
 var peerConnection;
 
@@ -67,15 +68,21 @@ $(function () {
 		console.log('connection request', data);
 		if (confirm(data.peer + ' would like to connect with you, do you want to connect?')) {
 			socket.emit('initialize', data);
+			remoteUserName = data.peer;
+			$(`#${remoteUserName}`).removeClass('btn-primary');
+			$(`#${remoteUserName}`).addClass('btn-success');
 			makeCall(socket, data);
 		}
 	});
 
-	socket.on('initialize-broadcast', data => {
+	socket.on('initialize', data => {
+		remoteUserName = data.remote;
+		$(`#${remoteUserName}`).removeClass('btn-primary');
+		$(`#${remoteUserName}`).addClass('btn-success');
 		makeCall(socket, data);
 	});
 
-	socket.on('offer-broadcast', async data => {
+	socket.on('offer', async data => {
 		await peerConnection.setRemoteDescription(data.offer);
 		const answer = await peerConnection.createAnswer();
 		await peerConnection.setLocalDescription(answer);
@@ -89,11 +96,11 @@ $(function () {
 		socket.emit('answer', d);
 	});
 
-	socket.on('answer-broadcast', async data => {
+	socket.on('answer', async data => {
 		await peerConnection.setRemoteDescription(data.answer);
 	});
 
-	socket.on('icecandidate-broadcast', async data => {
+	socket.on('icecandidate', async data => {
 		await peerConnection.addIceCandidate(data.candidate);
 	});
 

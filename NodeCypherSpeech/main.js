@@ -66,8 +66,8 @@ $(function () {
 		
 		$(`#${data}`).click(function () {
 			var request = {
-				from: userName,
-				to: data
+				peer: userName,
+				remote: data
 			};
 			socket.emit('request', request);
 		});
@@ -75,31 +75,28 @@ $(function () {
 		$(`#${userName}`).prop('disabled', true);
 	});
 
-	socket.on('request-broadcast', data => {
-		//If request is not meant for current user, ignore it
-		if (data.to !== userName) return;
-
+	socket.on('request', data => {
 		console.log('connection request', data);
-		if (confirm(data.from + ' would like to connect with you, do you want to connect?')) {
+		if (confirm(data.peer + ' would like to connect with you, do you want to connect?')) {
 			socket.emit('initialize', data);
 			makeCall(socket, data);
 		}
 	});
 
 	socket.on('initialize-broadcast', data => {
-		if (data.from !== userName) return;
+		if (data.peer !== userName) return;
 		makeCall(socket, data);
 	});
 
 	socket.on('offer-broadcast', async data => {
-		if (data.to !== userName) return;
+		if (data.remote !== userName) return;
 		await peerConnection.setRemoteDescription(data.offer);
 		const answer = await peerConnection.createAnswer();
 		await peerConnection.setLocalDescription(answer);
 		
 		var d = {
-			from: data.from,
-			to: data.to,
+			peer: data.peer,
+			remote: data.remote,
 			answer: answer
 		};
 		
@@ -107,7 +104,7 @@ $(function () {
 	});
 
 	socket.on('answer-broadcast', async data => {
-		if (data.from !== userName) return
+		if (data.peer !== userName) return
 		await peerConnection.setRemoteDescription(data.answer);
 	});
 
@@ -131,15 +128,14 @@ async function makeCall(socket, data) {
 	peerConnection = new RTCPeerConnection(config);
 	// var remoteConnection = new RTCPeerConnection(config);
 	
-	if (data.from === userName) {
+	if (data.peer === userName) {
 		peerConnection.onicecandidate = async event => {
-			console.log('idk what this is');
 			console.log(event);
 
 			if (event.candidate) {
 				var d = {
-					from: data.from,
-					to: data.to,
+					peer: data.peer,
+					remote: data.remote,
 					candidate: event.candidate
 				};
 
@@ -166,13 +162,13 @@ async function makeCall(socket, data) {
 		console.log('track', track);
 	});
 	
-	if (data.from === userName) {
+	if (data.peer === userName) {
 		const offer = await peerConnection.createOffer();
 		await peerConnection.setLocalDescription(offer);
 
 		var d = {
-			from: data.from,
-			to: data.to,
+			peer: data.peer,
+			remote: data.remote,
 			offer: offer
 		};
 

@@ -8,6 +8,16 @@ var port = 8082;
 var users = new Set();
 var map   = new Map();
 
+
+//Helper function to get key by value
+//Found at https://stackoverflow.com/questions/47135661/how-to-get-a-key-in-a-javascript-map-by-its-value
+function getByValue(m, searchValue) {
+	for (let [key, value] of m.entries()) {
+		if (value === searchValue)
+			return key;
+	}
+}
+
 //On a get request --> send back html
 app.get('/', function(req, res){
     res.sendFile(__dirname + "/index.html");
@@ -28,13 +38,12 @@ io.on('connection', function(socket) {
 
 	socket.on('request', data => {
 		console.log('connection request for', data);
-		io.emit('request-broadcast', data);
+		getByValue(map, data.remote).emit('request', data);
 	});
 
 	socket.on('initialize', data => {
-		console.log('initializing connection between', data.from, 'and', data.to);
+		console.log('initializing connection between', data.peer, 'and', data.remote);
 		io.emit('initialize-broadcast', data);
-		map
 	});
 
 	socket.on('offer', data => {

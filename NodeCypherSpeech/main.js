@@ -40,6 +40,15 @@ $(function () {
 	//On document render, open websocket to our server
 	var socket = io();
 
+	//Violates DRY but I don't care lol
+	$('form').submit(function(e){
+		e.preventDefault();
+		userName = $("#username").val();
+		socket.emit('message', userName);
+		$("#username").val('');
+		$("#connect").prop('disabled', true);
+	});
+
 	$('#connect').click(function () {
 			userName = $("#username").val();
 			socket.emit('message', userName);

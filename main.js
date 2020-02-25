@@ -5,19 +5,63 @@ var remoteUserName;
 var stream;
 var peerConnection;
 
+//Function to generate public and private keys for ECDH
+
+var handshake = {};
+
+handshake.genEcdhKeyPair = function (){
+	return crypto.subtle.generateKey(
+		{
+			name: "ECDH",
+			namedCurve: "P-256"
+		},
+		true,
+		["deriveKey"]
+	)
+	.then(function(key){
+		console.log("EC Key Pair is generated.");
+		var localEcKeyPair = key;
+		handshake.keyPair = key;
+		return crypto.subtle.exportKey("raw", localEcKeyPair.publicKey);
+	})
+	.then(function(result){
+		var finalResult = new Uint8Array(result.byteLength);
+		finalResult.set(new Uint8Array(result));
+		return finalResult;
+	})
+	.catch(function(err){
+		console.error(err);
+		return null;
+	})
+}
+
+//TODO: make this return an AES key pair that functions correctly
+handshake.createSharedKey = function(receivedKey){
+	return crypto.subtle.importKey("raw", receivedKey, { name: "ECDH", namedCurve: "P-256" }, true, [ ])
+	.then(console.log)
+}
+
+//Test function to show how we should call the function
+async function testCrypto(){
+	var toSend = await handshake.genEcdhKeyPair();
+	var pub  = handshake.keyPair.publicKey;
+	var priv = handshake.keyPair.privateKey; 
+
+	console.log(pub);
+	console.log(priv);
+	console.log(toSend);
+
+}
+
+$(function(){
+	testCrypto();
+})
+
 //On Page load, create an io socket connection to the server
 //On click of the connect button --> fetch value from user bar and send to server
 //TODO: Implement response from the server s.t. a response from the server constitutes a new button on the screen
 
 $(function() {
-	//const player = document.getElementById('player');
-	//const handleSuccess = function(stream) {
-		//if (window.URL){
-			//player.srcObject = stream;
-		//} else {
-			//player.src = stream;
-		//}
-	//};
 	
 	const audioOnly = {audio: true, video: false};
 
@@ -174,9 +218,9 @@ async function makeCall(socket, data) {
 		socket.emit('offer', d);
 	}
 
-	// await remoteConnection.setRemoteDescription(offer);
-	// const answer = await remoteConnection.createAnswer();
-	// await remoteConnection.setLocalDescription(answer);
-	
-	// await peerConnection.setRemoteDescription(answer);
+
+
+	console.log(pub);
+	console.log(priv);
+
 }

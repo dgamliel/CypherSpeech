@@ -53,10 +53,6 @@ async function testCrypto(){
 
 }
 
-$(function(){
-	testCrypto();
-})
-
 //On Page load, create an io socket connection to the server
 //On click of the connect button --> fetch value from user bar and send to server
 //TODO: Implement response from the server s.t. a response from the server constitutes a new button on the screen
@@ -218,9 +214,13 @@ async function makeCall(socket, data) {
 		socket.emit('offer', d);
 	}
 
+	var toSend = await handshake.genEcdhKeyPair(); //Returns a Uint8Array
+	var pub  = handshake.keyPair.publicKey;        //Public  key object used by WebCrypto
+	var priv = handshake.keyPair.privateKey;       //Private key object used by WebCrypto
 
-
+	//Console log
 	console.log(pub);
 	console.log(priv);
+	console.log(toSend);
 
 }

@@ -14,8 +14,7 @@
     "nodemon": "^2.0.2",
     "socketio": "^1.0.0"
   },
-	"engines": {
-		"node": "10.16.3"
-	}
+  "engines": {
+    "node": "10.16.3"
+  }
 }
-

@@ -3,7 +3,7 @@ var app = express();
 var server = require('http').Server(app);
 var path = require('path')
 var io = require('socket.io')(server);
-var port = 80;
+var port = process.env.PORT || 8082;
 
 var users = new Set();
 var map   = new Map();

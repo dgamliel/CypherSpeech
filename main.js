@@ -38,7 +38,22 @@ handshake.genEcdhKeyPair = function () {
 //TODO: make this return an AES key pair that functions correctly
 handshake.createSharedKey = function (receivedKey) {
 	return crypto.subtle.importKey("raw", receivedKey, { name: "ECDH", namedCurve: "P-256" }, true, [])
-		.then(console.log)
+	.then( importedKey => {
+		return crypo.subtle.deriveBits(
+			{
+				name: 'ECDH',
+				namedCurve: 'P-256',
+				public: importedKey
+			},
+			handshake.keyPair.privateKey,
+			256
+		)
+	})
+	.then(sharedSecret => {
+		var secret = new Uint8Array(sharedSecret.length);
+		secret.set(new Uint8Array(sharedSecret));
+		return secret;
+	})
 }
 
 //Test function to show how we should call the function
@@ -47,11 +62,17 @@ async function testCrypto() {
 	var pub = handshake.keyPair.publicKey;
 	var priv = handshake.keyPair.privateKey;
 
-	console.log(pub);
-	console.log(priv);
-	console.log(toSend);
+	//console.log(pub);
+	//console.log(priv);
+	//console.log(toSend);
+	console.log(handshake);
 
 }
+
+//Run this only when we need to test some async crypto stuff
+$(function(){
+	var whatever = testCrypto();
+})
 
 //On Page load, create an io socket connection to the server
 //On click of the connect button --> fetch value from user bar and send to server

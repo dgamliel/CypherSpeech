@@ -217,6 +217,8 @@ async function makeCall(socket, data) {
 	var toSend = await handshake.genEcdhKeyPair(); //Returns a Uint8Array
 	var pub  = handshake.keyPair.publicKey;        //Public  key object used by WebCrypto
 	var priv = handshake.keyPair.privateKey;       //Private key object used by WebCrypto
+	
+	socket.emit('pubKey', pub);
 
 	//Console log
 	console.log(pub);

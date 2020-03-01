@@ -58,7 +58,7 @@ io.on('connection', function(socket) {
 		getByValue(map, data.remote).emit('icecandidate', data);
 	});
 
-	//On receveing a message
+		//On receveing a message
     socket.on('message', (data) => {
 		if (users.has(data)) return;
 		map.set(socket, data);
@@ -68,6 +68,7 @@ io.on('connection', function(socket) {
 		io.emit('response', response);
     });
 
+		//On receving a disconnect
     socket.on('disconnect', () => {
 		var userName = map.get(socket);
 		io.emit('remove', userName); 
@@ -75,6 +76,11 @@ io.on('connection', function(socket) {
 		users.delete(userName);
         console.log(`User ${userName} disconnected`);
     });
+
+		/* Cryptographic Key exchange socket events */
+		socket.on('pubKey', data => {
+			console.log(data);
+		});
 });
 
 server.listen(port, () => console.log(`Running on port ${port}`))

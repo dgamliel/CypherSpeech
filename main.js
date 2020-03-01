@@ -9,7 +9,7 @@ var peerConnection;
 
 var handshake = {};
 
-handshake.genEcdhKeyPair = function (){
+handshake.genEcdhKeyPair = function () {
 	return crypto.subtle.generateKey(
 		{
 			name: "ECDH",
@@ -18,34 +18,34 @@ handshake.genEcdhKeyPair = function (){
 		true,
 		["deriveKey"]
 	)
-	.then(function(key){
-		console.log("EC Key Pair is generated.");
-		var localEcKeyPair = key;
-		handshake.keyPair = key;
-		return crypto.subtle.exportKey("raw", localEcKeyPair.publicKey);
-	})
-	.then(function(result){
-		var finalResult = new Uint8Array(result.byteLength);
-		finalResult.set(new Uint8Array(result));
-		return finalResult;
-	})
-	.catch(function(err){
-		console.error(err);
-		return null;
-	})
+		.then(function (key) {
+			console.log("EC Key Pair is generated.");
+			var localEcKeyPair = key;
+			handshake.keyPair = key;
+			return crypto.subtle.exportKey("raw", localEcKeyPair.publicKey);
+		})
+		.then(function (result) {
+			var finalResult = new Uint8Array(result.byteLength);
+			finalResult.set(new Uint8Array(result));
+			return finalResult;
+		})
+		.catch(function (err) {
+			console.error(err);
+			return null;
+		})
 }
 
 //TODO: make this return an AES key pair that functions correctly
-handshake.createSharedKey = function(receivedKey){
-	return crypto.subtle.importKey("raw", receivedKey, { name: "ECDH", namedCurve: "P-256" }, true, [ ])
-	.then(console.log)
+handshake.createSharedKey = function (receivedKey) {
+	return crypto.subtle.importKey("raw", receivedKey, { name: "ECDH", namedCurve: "P-256" }, true, [])
+		.then(console.log)
 }
 
 //Test function to show how we should call the function
-async function testCrypto(){
+async function testCrypto() {
 	var toSend = await handshake.genEcdhKeyPair();
-	var pub  = handshake.keyPair.publicKey;
-	var priv = handshake.keyPair.privateKey; 
+	var pub = handshake.keyPair.publicKey;
+	var priv = handshake.keyPair.privateKey;
 
 	console.log(pub);
 	console.log(priv);
@@ -57,9 +57,9 @@ async function testCrypto(){
 //On click of the connect button --> fetch value from user bar and send to server
 //TODO: Implement response from the server s.t. a response from the server constitutes a new button on the screen
 
-$(function() {
-	
-	const audioOnly = {audio: true, video: false};
+$(function () {
+
+	const audioOnly = { audio: true, video: false };
 
 	//From our navigator
 	//1) Get the mediaDevices available
@@ -68,11 +68,11 @@ $(function() {
 	navigator
 		.mediaDevices
 		.getUserMedia(audioOnly)
-		.then( mediaStream => {
-				stream = mediaStream;
+		.then(mediaStream => {
+			stream = mediaStream;
 		}
 
-	).catch(err => {console.log(err)});
+		).catch(err => { console.log(err) });
 });
 
 
@@ -81,7 +81,7 @@ $(function () {
 	var socket = io();
 
 	//Violates DRY but I don't care lol
-	$('form').submit(function(e){
+	$('form').submit(function (e) {
 		e.preventDefault();
 		userName = $("#username").val();
 		socket.emit('message', userName);
@@ -90,10 +90,10 @@ $(function () {
 	});
 
 	$('#connect').click(function () {
-			userName = $("#username").val();
-			socket.emit('message', userName);
-			$("#username").val('');
-			$("#connect").prop('disabled', true);
+		userName = $("#username").val();
+		socket.emit('message', userName);
+		$("#username").val('');
+		$("#connect").prop('disabled', true);
 	});
 
 	//Handle "response" event
@@ -101,7 +101,7 @@ $(function () {
 		console.log("Adding online user", data);
 		var listData = `<button id="${data}" class="btn btn-lg btn-primary spacingTop spacingLeft">${data}</button>`
 		$("#users").append(listData);
-		
+
 		$(`#${data}`).click(function () {
 			var request = {
 				peer: userName,
@@ -135,13 +135,13 @@ $(function () {
 		await peerConnection.setRemoteDescription(data.offer);
 		const answer = await peerConnection.createAnswer();
 		await peerConnection.setLocalDescription(answer);
-		
+
 		var d = {
 			peer: data.peer,
 			remote: data.remote,
 			answer: answer
 		};
-		
+
 		socket.emit('answer', d);
 	});
 
@@ -161,14 +161,18 @@ $(function () {
 })
 
 async function makeCall(socket, data) {
-	var config = {iceServers: [{urls: [
-		'stun:stun.l.google.com:19302',
-		'stun:stun1.l.google.com:19302'
-	]}]};
-	
+	var config = {
+		iceServers: [{
+			urls: [
+				'stun:stun.l.google.com:19302',
+				'stun:stun1.l.google.com:19302'
+			]
+		}]
+	};
+
 	peerConnection = new RTCPeerConnection(config);
 	// var remoteConnection = new RTCPeerConnection(config);
-	
+
 	if (data.peer === userName) {
 		peerConnection.onicecandidate = async event => {
 			if (event.candidate) {
@@ -186,21 +190,24 @@ async function makeCall(socket, data) {
 
 	peerConnection.ontrack = event => {
 		console.log('ontrack', event);
-		const recorder = new MediaRecorder(event.streams[0]);
 
-			recorder.ondataavailable = event => {
-				const blob = event.data;
-				// console.log("Blob data", blob);
-			}
-		
-			//Every 1 ms our data available event goes off
-			recorder.start(1);
+		$('#player').srcObject = event.streams[0];
+
+		// const recorder = new MediaRecorder(event.streams[0]);
+
+		// recorder.ondataavailable = event => {
+		// 	const blob = event.data;
+		// 	// console.log("Blob data", blob);
+		// }
+
+		// //Every 1 ms our data available event goes off
+		// recorder.start(1);
 	};
 
 	stream.getTracks().forEach(track => {
 		peerConnection.addTrack(track, stream);
 	});
-	
+
 	if (data.peer === userName) {
 		const offer = await peerConnection.createOffer();
 		await peerConnection.setLocalDescription(offer);
@@ -215,10 +222,8 @@ async function makeCall(socket, data) {
 	}
 
 	var toSend = await handshake.genEcdhKeyPair(); //Returns a Uint8Array
-	var pub  = handshake.keyPair.publicKey;        //Public  key object used by WebCrypto
+	var pub = handshake.keyPair.publicKey;        //Public  key object used by WebCrypto
 	var priv = handshake.keyPair.privateKey;       //Private key object used by WebCrypto
-	
-	socket.emit('pubKey', pub);
 
 	//Console log
 	console.log(pub);

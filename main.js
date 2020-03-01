@@ -61,7 +61,7 @@ $(function () {
 
 	const audioOnly = { audio: true, video: false };
 
-	var player = document.getElementById('player')
+	// var player = document.getElementById('player')
 
 	//From our navigator
 	//1) Get the mediaDevices available
@@ -72,7 +72,7 @@ $(function () {
 		.getUserMedia(audioOnly)
 		.then(mediaStream => {
 			stream = mediaStream;
-			player.srcObject = stream;
+			// player.srcObject = stream;
 		}
 
 		).catch(err => { console.log(err) });
@@ -194,6 +194,7 @@ async function makeCall(socket, data) {
 	peerConnection.ontrack = event => {
 		console.log('ontrack', event);
 
+		document.getElementById('player').srcObject = event.streams[0];
 		//$('#player').srcObject = event.streams[0];
 
 		// const recorder = new MediaRecorder(event.streams[0]);

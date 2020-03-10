@@ -93,6 +93,7 @@ $(function () {
 		.getUserMedia(audioOnly)
 		.then(mediaStream => {
 			stream = mediaStream;
+			console.log('stream', stream);
 			// player.srcObject = stream;
 		}
 
@@ -237,7 +238,10 @@ async function makeCall(socket, data) {
 	peerConnection.ontrack = event => {
 		console.log('ontrack', event);
 
-		document.getElementById('player').srcObject = event.streams[0];
+		var player = document.getElementById('player')
+		if (player.srcObject != event.streams[0]) {
+			player.srcObject = event.streams[0];
+		}
 		//$('#player').srcObject = event.streams[0];
 
 		// const recorder = new MediaRecorder(event.streams[0]);

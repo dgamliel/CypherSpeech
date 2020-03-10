@@ -4,6 +4,7 @@ var userName;
 var remoteUserName;
 var stream;
 var peerConnection;
+var iv;
 
 //Function to generate public and private keys for ECDH
 
@@ -27,6 +28,7 @@ handshake.genEcdhKeyPair = function () {
 		.then(function (result) {
 			var finalResult = new Uint8Array(result.byteLength);
 			finalResult.set(new Uint8Array(result));
+
 			return finalResult;
 		})
 		.catch(function (err) {
@@ -37,6 +39,8 @@ handshake.genEcdhKeyPair = function () {
 
 //TODO: make this return an AES key pair that functions correctly
 handshake.createSharedKey = function (receivedKey) {
+	//console.log("Trying to create shared secret from ", receivedKey);
+	let rawKey = crypto.subtle.exportKey("raw", receivedKey);
 	return crypto.subtle.importKey("raw", receivedKey, { name: "ECDH", namedCurve: "P-256" }, true, [])
 	.then( importedKey => {
 		return crypo.subtle.deriveBits(
@@ -56,22 +60,52 @@ handshake.createSharedKey = function (receivedKey) {
 	})
 }
 
+handshake.symmetricEncrypt = function (msg, key) {
+	//var enc = new TextEncoder();
+	//msg = enc.encode(msg);
+	iv = crypto.getRandomValues(new Uint8Array(16));
+
+	//Uint8Array
+	return window.subtle.encrypt(
+		{
+			name: "AES-CBC",
+			iv
+		},
+		key,
+		msg
+	);
+}
+
+
+handshake.symmetricDecrypt = function (ciphertext, key) {
+	//Returns Uint8Array
+	return window.subtle.decrypt(
+		{
+			name: "AES-CBC",
+			iv
+		},
+		key,
+		ciphertext
+	);
+}
+
 //Test function to show how we should call the function
 async function testCrypto() {
 	var toSend = await handshake.genEcdhKeyPair();
 	var pub = handshake.keyPair.publicKey;
 	var priv = handshake.keyPair.privateKey;
 
-	//console.log(pub);
-	//console.log(priv);
-	//console.log(toSend);
+	console.log(pub);
+	console.log(priv);
+	console.log(toSend);
 	console.log(handshake);
 
 }
 
 //Run this only when we need to test some async crypto stuff
 $(function(){
-	var whatever = testCrypto();
+	//var whatever = testCrypto();
+	return;
 })
 
 //On Page load, create an io socket connection to the server
@@ -145,6 +179,7 @@ $(function () {
 			remoteUserName = data.peer;
 			$(`#${remoteUserName}`).removeClass('btn-primary');
 			$(`#${remoteUserName}`).addClass('btn-success');
+			establishEncryption(socket);
 			makeCall(socket, data);
 		}
 	});
@@ -153,6 +188,7 @@ $(function () {
 		remoteUserName = data.remote;
 		$(`#${remoteUserName}`).removeClass('btn-primary');
 		$(`#${remoteUserName}`).addClass('btn-success');
+		establishEncryption(socket);
 		makeCall(socket, data);
 	});
 
@@ -183,7 +219,46 @@ $(function () {
 		var removeName = data;
 		$(`#${removeName}`).remove();
 	});
+
+	/* CRYPTO FUNCTIONALITY */
+
+	//On receiving a public key from a peer, gen our keyPair and send back our public key
+	socket.on('pubFromPeer', async data => {
+		let remoteKeyPair = await handshake.genEcdhKeyPair();
+		let receivedKey = data;
+
+		console.log("in pubFromPeer key generated is ", remoteKeyPair);
+		//handshake.sharedKey = await handshake.createSharedKey(receivedKey);
+
+		//console.log('Sending publicKey from remote', remoteKeyPair);
+		console.log('Creating shared key from peer', handshake.sharedKey);
+		socket.emit('pubFromRemote', remoteKeyPair);
+
+	});
+
+	//On receiving our publicKey from remote we create our shared key and exit
+	socket.on('pubFromRemote', async data => {
+		handshake.sharedKey = await handshake.createSharedKey(data);
+		console.log('Creating shared key from remote', handshake.sharedKey);
+	});
+
 })
+
+async function establishEncryption(socket){
+	// PSEDUO CODE FOR ESTABLISHING AN ENCRYPTED CONNECTION
+	/*
+	 * 1) The peer creates a DH Key Pair
+	 * 2) Peer signals server to send DH Pub Key to Remote
+	 * 3) On receiving DH Pub Key, Remote creates DH Key Pair and sends Remote Pub Key to Peer
+	 * 4) Remote and Peer create sharedSecret key
+	 */ 
+
+	var keyPair = await handshake.genEcdhKeyPair()
+	console.log('keyPair from public is', keyPair);
+	socket.emit('pubFromPeer', keyPair.publicKey);
+
+}
+
 
 async function makeCall(socket, data) {
 	// var config = {
@@ -275,10 +350,5 @@ async function makeCall(socket, data) {
 	var toSend = await handshake.genEcdhKeyPair(); //Returns a Uint8Array
 	var pub = handshake.keyPair.publicKey;        //Public  key object used by WebCrypto
 	var priv = handshake.keyPair.privateKey;       //Private key object used by WebCrypto
-
-	//Console log
-	console.log(pub);
-	console.log(priv);
-	console.log(toSend);
 
 }

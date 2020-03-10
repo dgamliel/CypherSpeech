@@ -78,9 +78,18 @@ io.on('connection', function(socket) {
     });
 
 		/* Cryptographic Key exchange socket events */
-		socket.on('pubKey', data => {
-			console.log(data);
+
+		//On receiving key from peer forward to remote
+		socket.on('pubFromPeer', data => {
+			console.log('From PEER to REMOTE sending:', data);
+			io.emit('pubFromPeer', data);
 		});
+
+		//On receiving key from remote, forward to peer
+		socket.on('pubFromRemote', data => {
+			console.log('From REMOTE to PEER sending:', data);
+			io.emit('pubFromRemote', data);
+		})
 });
 
 server.listen(port, () => console.log(`Running on port ${port}`))

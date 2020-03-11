@@ -43,6 +43,9 @@ handshake.createSharedKey = function (receivedKey) {
 	let rawKey = crypto.subtle.exportKey("raw", receivedKey);
 	return crypto.subtle.importKey("raw", receivedKey, { name: "ECDH", namedCurve: "P-256" }, true, [])
 	.then( importedKey => {
+
+		console.log("Attempting to create a shared key from the private key we have as ", handshake.keyPair.privateKey);
+
 		return crypo.subtle.deriveBits(
 			{
 				name: 'ECDH',
@@ -62,6 +65,11 @@ handshake.createSharedKey = function (receivedKey) {
 	.catch(err => {
 		console.error(err);
 	})
+}
+
+//Takes input raw Uint8Array 
+handshake.createSharedKey = function (receivedKey){
+
 }
 
 handshake.symmetricEncrypt = function (msg, key) {
@@ -239,8 +247,9 @@ $(function () {
 
 	//On receiving our publicKey from remote we create our shared key and exit
 	socket.on('pubFromRemote', async data => {
-		handshake.sharedKey = await handshake.createSharedKey(data);
-		console.log('Creating shared key from remote', handshake.sharedKey);
+		console.log('Receiving from remote data of', data);
+		var sharedKey = await handshake.createSharedKey(data);
+		console.log('Creating shared key from remote', sharedKey);
 	});
 
 })
